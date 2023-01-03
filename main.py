@@ -17,7 +17,7 @@ def summarize(text, sentencePercent):
     sentences = nltk.sent_tokenize(text)
     sentenceCount = sentencePercent*len(sentences)/100
     # print(word_tokens)
-    stopwords = nltk.corpus.stopwords.words('english')
+    stopwords = nltk.corpus.stopwords.sentence_words('english')
     # print(stopwords)
     word_freq = {}
     for word in word_tokens:

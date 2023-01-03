@@ -1,3 +1,4 @@
+import os
 import random
 
 import matplotlib.pyplot as plt
@@ -13,7 +14,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 
-from cb_bert_model import bert_tokenizer, init_bert_model, bert_train, bert_predict
+from cb_bert_model import bert_tokenizer, init_bert_model, bert_train, bert_predict, device
 from cb_text_cleanup import deep_clean
 
 # Text cleaning
@@ -21,6 +22,8 @@ from cb_text_cleanup import deep_clean
 
 cyber_bullying_tweet_file = "/Users/sowmysrinivasan/Library/Mobile Documents/com~apple~CloudDocs/Cyber " \
                             "Bullying/cyberbullying_tweets.csv"
+cyber_bullying_model_file = "/Users/sowmysrinivasan/Library/Mobile Documents/com~apple~CloudDocs/Cyber " \
+                       "Bullying/cb_tweets.zip"
 seed_value = 42
 random.seed(seed_value)
 np.random.seed(seed_value)
@@ -136,10 +139,18 @@ test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=batch_s
 print("creating a bert model ...")
 # Initialize the bert model
 bert_classifier, optimizer, scheduler = init_bert_model(train_dataloader, epochs=EPOCHS)
+print("saving model to " + cyber_bullying_model_file)
+torch.save(bert_classifier.state_dict(), cyber_bullying_model_file)
 
-print("training the model ...")
-# Train
-bert_train(bert_classifier, optimizer, scheduler, train_dataloader, val_dataloader, epochs=EPOCHS)
+if (os.path.exists(cyber_bullying_model_file)):
+    print("loading model from " + cyber_bullying_model_file)
+    bert_classifier.load_state_dict(copy.deepcopy(torch.load(cyber_bullying_model_file,device)))
+else:
+    print("training the model ...")
+    # Train
+    bert_train(bert_classifier, optimizer, scheduler, train_dataloader, val_dataloader, epochs=EPOCHS)
+    print("saving model to " + cyber_bullying_model_file)
+    torch.save(bert_classifier.state_dict(), cyber_bullying_model_file)
 
 print("testing the model ...")
 # Test

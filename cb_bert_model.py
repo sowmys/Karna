@@ -1,21 +1,24 @@
 import time
+from typing import List, Optional, Any
 
 import numpy as np
 import torch
 from torch import nn as nn
+from torch.nn import CrossEntropyLoss
 from transformers import BertModel, AdamW, get_linear_schedule_with_warmup
-
-# from cyber_bullying_detection import train_dataloader, optimizer, scheduler
-
 # Transformers library for BERT
 from transformers import BertTokenizer
 
-MAX_LEN = 128
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# from cyber_bullying_detection import train_dataloader, optimizer, scheduler
+
+MAX_LEN: int = 128
+tokenizer: BertTokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+loss_fn: CrossEntropyLoss = nn.CrossEntropyLoss()
+
 
 class Bert_Classifier(nn.Module):
-    def __init__(self, freeze_bert=False):
+    def __init__(self, freeze_bert: object = False) -> object:
         super(Bert_Classifier, self).__init__()
         # Specify hidden size of BERT, hidden size of the classifier, and number of labels
         n_input = 768
@@ -36,7 +39,7 @@ class Bert_Classifier(nn.Module):
             for param in self.bert.parameters():
                 param.requires_grad = False
 
-    def forward(self, input_ids, attention_mask):
+    def forward(self, input_ids: object, attention_mask: object) -> object:
         # Feed input data to BERT
         outputs = self.bert(input_ids=input_ids,
                             attention_mask=attention_mask)
@@ -50,9 +53,9 @@ class Bert_Classifier(nn.Module):
         return logits
 
 
-def bert_tokenizer(data):
-    input_ids = []
-    attention_masks = []
+def bert_tokenizer(data: [str]) -> (list[Optional[str]], list[Optional[str]]):
+    input_ids: list[Optional[str]] = []
+    attention_masks: list[Optional[str]] = []
     for sent in data:
         encoded_sent = tokenizer.encode_plus(
             text=sent,
@@ -95,9 +98,6 @@ def init_bert_model(train_dataloader, epochs=4):
     return bert_classifier, optimizer, scheduler
 
 
-loss_fn = nn.CrossEntropyLoss()
-
-
 def bert_train(model, optimizer, scheduler, train_dataloader, val_dataloader=None, epochs=4, evaluation=False):
     print("Start training...\n")
     for epoch_i in range(epochs):
@@ -113,8 +113,6 @@ def bert_train(model, optimizer, scheduler, train_dataloader, val_dataloader=Non
 
         # Reset tracking variables at the beginning of each epoch
         total_loss, batch_loss, batch_counts = 0, 0, 0
-
-        ###TRAINING###
 
         # Put the model into the training mode
         model.train()
@@ -160,8 +158,6 @@ def bert_train(model, optimizer, scheduler, train_dataloader, val_dataloader=Non
 
         # Calculate the average loss over the entire training data
         avg_train_loss = total_loss / len(train_dataloader)
-
-        ###EVALUATION###
 
         # Put the model into the evaluation mode
         model.eval()
